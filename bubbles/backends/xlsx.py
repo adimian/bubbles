@@ -16,9 +16,7 @@ CELL_TYPES = {openpyxl.cell.Cell.TYPE_STRING: 'string',
               openpyxl.cell.Cell.TYPE_FORMULA: 'unknown',
               openpyxl.cell.Cell.TYPE_NUMERIC: 'float',
               openpyxl.cell.Cell.TYPE_BOOL: 'boolean',
-              openpyxl.cell.Cell.TYPE_NULL: 'unknown',
               openpyxl.cell.Cell.TYPE_INLINE: 'string',
-              openpyxl.cell.Cell.TYPE_ERROR: 'unknown',
               openpyxl.cell.Cell.TYPE_FORMULA_CACHE_STRING: 'string'}
 
 
