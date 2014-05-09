@@ -39,6 +39,7 @@ try:
         "datetime": sqlalchemy.types.DateTime,
         "binary": sqlalchemy.types.Binary,
         "integer": sqlalchemy.types.Integer,
+        "float": sqlalchemy.types.Numeric,
         "number": sqlalchemy.types.Numeric,
         "boolean": sqlalchemy.types.SmallInteger
     }
