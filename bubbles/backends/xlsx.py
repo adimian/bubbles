@@ -39,9 +39,11 @@ class XLSXStore(DataStore):
             self._book = _load_workbook(self.resource)
         return self._book
 
-    def get_object(self, name, skip_rows=0, has_header=True):
+    def get_object(self, name, skip_rows=0, has_header=True,
+                   stop_empty_line=False):
         return XLSXObject(self.book, sheet=name, encoding=self.encoding,
-                          skip_rows=skip_rows, has_header=has_header)
+                          skip_rows=skip_rows, has_header=has_header,
+                          stop_empty_line=stop_empty_line)
 
     def object_names(self):
         return self.book.get_sheet_names()
@@ -54,7 +56,8 @@ class XLSXObject(DataObject):
     __identifier__ = "xlsx"
 
     def __init__(self, resource=None, fields=None, sheet=0,
-                 encoding=None, skip_rows=0, has_header=True):
+                 encoding=None, skip_rows=0, has_header=True,
+                 stop_empty_line=False):
         """Creates a XLSX spreadsheet data source stream.
 
         Attributes:
@@ -80,6 +83,8 @@ class XLSXObject(DataObject):
             self.first_row = skip_rows + 1
         else:
             self.first_row = skip_rows
+
+        self.stop_empty_line = stop_empty_line
 
         if fields:
             self.fields = fields
@@ -112,6 +117,7 @@ class XLSXObject(DataObject):
         return self._nrows() - self.first_row
 
     def rows(self):
+        stop_empty = self.stop_empty_line
         if not self.fields:
             raise RuntimeError("Fields are not initialized")
 
@@ -119,7 +125,10 @@ class XLSXObject(DataObject):
         rows = enumerate(self.sheet.rows)
         rows = dropwhile(lambda x: x[0] < self.first_row, rows)
         for _, row in rows:
-            yield tuple([c.value for c in row[:field_count]])
+            values = [c.value for c in row[:field_count]]
+            if stop_empty and not any(values):
+                break
+            yield tuple(values)
 
     def records(self):
         fields = self.fields.names()
