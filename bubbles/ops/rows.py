@@ -39,6 +39,7 @@ def unary_iterator(func):
 # Metadata Operations
 
 _default_type_converters = {
+    "string": str, 
     "integer": int,
     "number": float,
     "boolean": to_bool,
