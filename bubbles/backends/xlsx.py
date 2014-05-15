@@ -66,6 +66,10 @@ class XLSXObject(DataObject):
         * sheet: sheet index number (as int) or sheet name
         * has_header: flag determining whether first line contains header or
           not. ``True`` by default.
+        * stop_empty_line: flag to stop iteration over rows at the first
+          encounter with an empty line. As XLSX files can contain millions
+          or rows, this might cause very long iterations, especially if
+          all the lines are empty past a certain point
         """
         if isinstance(resource, openpyxl.Workbook):
             self.workbook = resource
