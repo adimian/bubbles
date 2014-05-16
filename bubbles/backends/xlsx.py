@@ -40,10 +40,10 @@ class XLSXStore(DataStore):
         return self._book
 
     def get_object(self, name, skip_rows=0, has_header=True,
-                   stop_empty_line=False):
+                   stop_empty_line=False, fields=None):
         return XLSXObject(self.book, sheet=name, encoding=self.encoding,
                           skip_rows=skip_rows, has_header=has_header,
-                          stop_empty_line=stop_empty_line)
+                          stop_empty_line=stop_empty_line, fields=fields)
 
     def object_names(self):
         return self.book.get_sheet_names()
@@ -62,6 +62,7 @@ class XLSXObject(DataObject):
 
         Attributes:
 
+        * fields: `bubbles.metadata.FieldList` to use instead of auto-detection
         * resource: file name, URL or file-like object
         * sheet: sheet index number (as int) or sheet name
         * has_header: flag determining whether first line contains header or
@@ -97,7 +98,9 @@ class XLSXObject(DataObject):
             first_row = next(dropwhile(lambda x: x[0] < self.first_row,
                                        rows))[1]
             if has_header:
-                header_row = next(self.sheet.rows)
+                header_rows = enumerate(self.sheet.rows)
+                header_row = next(dropwhile(lambda x: x[0] < (self.first_row - 1),
+                                            header_rows))[1]
                 names = [str(c.value) for c in header_row]
             else:
                 names = ['col%d' % i for i in range(len(first_row))]
