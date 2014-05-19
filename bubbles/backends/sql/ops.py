@@ -1,4 +1,5 @@
 import functools
+from .objects import InsertFromSelect
 from ...operation import RetryOperation
 from ...prototypes import *
 from ...metadata import Field, FieldList, FieldFilter
@@ -592,12 +593,12 @@ def _(ctx, dim, source, dim_key, source_key, fields, version_field):
     """Return an object representing changed dimension rows.
 
     Arguments:
-        * `dim` – dimension table (target)
-        * `source` – source statement
-        * `dim_key` – dimension table key
-        * `source_key` – source table key
-        * `fields` – fields to be compared for changes
-        * `version_field` – field that is optionally checked to be empty (NULL)
+        * `dim` - dimension table (target)
+        * `source` - source statement
+        * `dim_key` - dimension table key
+        * `source_key` - source table key
+        * `fields` - fields to be compared for changes
+        * `version_field` - field that is optionally checked to be empty (NULL)
 
     """
     src_columns = source.columns(fields)
@@ -842,7 +843,7 @@ def _(ctx, obj):
 
 @insert.register("sql", "sql")
 def _(ctx, source, target):
-    if not target.can_compose(src):
+    if not target.can_compose(source):
         raise RetryOperation(["rows"])
 
     # Flush all data that were added through append() to preserve
