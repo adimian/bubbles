@@ -1,7 +1,9 @@
-from collections import OrderedDict, namedtuple, Counter
+from collections import OrderedDict, namedtuple
 from ..objects import data_object
 from ..common import get_logger
 from ..errors import *
+import os
+import tempfile
 
 __all__ = (
     "Graph",
@@ -98,7 +100,7 @@ class ObjectNode(NodeBase):
         return self.obj
 
     def __str__(self):
-        return "object %s" % (self.obj, )
+        return "object %s" % (self.obj,)
 
 
 class CreateObjectNode(NodeBase):
@@ -144,7 +146,7 @@ class Graph(object):
     """Data processing graph.
 
     .. note:
-            Modifications are not thread safe – as intended.
+            Modifications are not thread safe - as intended.
     """
 
     def __init__(self, nodes=None, connections=None):
@@ -173,7 +175,7 @@ class Graph(object):
 
         if connections:
             for connection in connections:
-                self.connect(*connectio)
+                self.connect(*connection)
 
     def _generate_node_name(self):
         """Generates unique name for a node"""
@@ -206,13 +208,13 @@ class Graph(object):
         if not node:
             raise ValueError("No node provided")
 
-        names = [key for key,value in self.nodes.items() if value==node]
+        names = [key for key, value in self.nodes.items() if value == node]
 
         if len(names) == 1:
             return names[0]
         elif len(names) > 1:
             raise Exception("There are more references to the same node")
-        else: # if len(names) == 0
+        else:  # if len(names) == 0
             raise Exception("Can not find node '%s'" % node)
 
     def rename_node(self, node, name):
@@ -278,6 +280,53 @@ class Graph(object):
 
         connection = (self.coalesce_node(source), self.coalesce_node(target))
         self.connections.discard(connection)
+
+    def as_dot(self, filename):
+        if os.system('dot -V'):
+            raise RuntimeError('dot command not found, please install graphviz')
+        filetype = os.path.splitext(filename)[-1][1:]
+
+        nm = self.node_name
+        diagram = ['digraph %s {' % 'mygraph']
+        diagram.append('node [color=lightblue2, style=filled];')
+        op_to_skip = ('pretty_print')
+
+        for name, node in self.nodes.items():
+            if isinstance(node, StoreObjectNode):
+                label = node.objname
+                shape = 'box3d'
+                color = 'darkolivegreen4'
+            elif isinstance(node, CreateObjectNode):
+                label = '%s : %s' % (node.store, node.name)
+                shape = 'hexagon'
+                color = 'goldenrod'
+            else:
+                if node.opname in op_to_skip:
+                    continue
+                label = node.opname + str(node.args)
+                shape = 'house'
+                color = 'darksalmon'
+            desc = '%s [label="%s",shape=%s,color=%s];' % (name, label,
+                                                           shape, color)
+            diagram.append(desc)
+
+        for connection in self.connections:
+            source = connection.source
+            target = connection.target
+            if hasattr(target, 'opname') and target.opname in op_to_skip:
+                continue
+            diagram.append('%s -> %s;' % (nm(source), nm(target)))
+
+        diagram.append('}')
+
+        fd, temp_filename = tempfile.mkstemp(suffix='.dot')
+        os.close(fd)
+        with open(temp_filename, 'w') as f:
+            for line in diagram:
+                f.write('%s\n' % line)
+        command = 'dot -x %s -T%s -o%s' % (temp_filename, filetype, filename)
+        os.system(command)
+        os.unlink(temp_filename)
 
     def sorted_nodes(self):
         """
@@ -350,7 +399,7 @@ class Graph(object):
     def targets(self, node):
         """Return nodes that `node` passes data into."""
         node = self.node(node)
-        nodes =[conn.target for conn in self.connections if conn.target == node]
+        nodes = [conn.target for conn in self.connections if conn.target == node]
         return nodes
 
     def sources(self, node):
