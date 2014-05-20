@@ -1,6 +1,15 @@
 from ...errors import *
 from ...metadata import Field, FieldList
 
+try:
+    import sqlalchemy
+    from sqlalchemy import sql
+except ImportError:
+    from ...common import MissingPackage
+    sqlalchemy = MissingPackage("sqlalchemy", "SQL streams", "http://www.sqlalchemy.org/",
+                                comment="Recommended version is > 0.7")
+    sql = sqlalchemy
+
 __all__ = (
             "prepare_key",
             "zip_condition",

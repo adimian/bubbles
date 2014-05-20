@@ -75,6 +75,8 @@ def _(ctx, src, key, value, discard=False):
     if len(filter_cols) == 1:
         value = (value, )
     condition = zip_condition(filter_cols, value)
+    if discard:
+        condition = sql.expression.not_(condition)
     statement = sql.expression.select(cols, from_obj=statement,
                                         whereclause=condition)
 
