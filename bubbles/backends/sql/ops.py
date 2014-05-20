@@ -262,7 +262,9 @@ def _(ctx, obj, fields, values):
     new_fields = obj.fields + FieldList(*fields)
 
     selection = statement.c
-    selection += values
+    for field, value in zip(fields, values):
+        constant_column = sql.expression.literal(value=value).label(field.name)
+        selection += [constant_column]
 
     statement = sql.expression.select(selection, from_obj=statement)
     result = obj.clone_statement(statement=statement, fields=new_fields)
