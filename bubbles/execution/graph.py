@@ -306,6 +306,10 @@ class Graph(object):
                 label = node.opname + str(node.args)
                 shape = 'house'
                 color = 'darksalmon'
+
+                if node.opname == 'join_details':
+                    color = 'deepskyblue'
+
             desc = '%s [label="%s",shape=%s,color=%s];' % (name, label,
                                                            shape, color)
             diagram.append(desc)
