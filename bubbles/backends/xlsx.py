@@ -101,7 +101,9 @@ class XLSXObject(DataObject):
                 header_rows = enumerate(self.sheet.rows)
                 header_row = next(dropwhile(lambda x: x[0] < (self.first_row - 1),
                                             header_rows))[1]
-                names = [str(c.value) for c in header_row]
+                # fetch names, replace line breaks by spaces in case of
+                # manual line wrapping
+                names = [' '.join(str(c.value).split()) for c in header_row]
             else:
                 names = ['col%d' % i for i in range(len(first_row))]
 
